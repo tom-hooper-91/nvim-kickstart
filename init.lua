@@ -155,8 +155,8 @@ do
   --  It is very similar to `vim.o` but offers an interface for conveniently interacting with tables.
   --   See `:help lua-options`
   --   and `:help lua-guide-options`
-  vim.o.list = true
-  vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+  -- vim.o.list = true
+  -- vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 
   -- Preview substitutions live, as you type!
   vim.o.inccommand = 'split'
@@ -360,6 +360,21 @@ do
       changedelete = { text = '~' }, ---@diagnostic disable-line: missing-fields
     },
   }
+
+  -- NOTE I've added this one myself - hopefully this will help with common git tasks
+  
+  -- Dependencies
+  vim.pack.add { gh 'esmuellert/codediff.nvim' }
+  vim.pack.add { gh 'm00qek/baleia.nvim' }
+  
+  -- Main package
+  vim.pack.add { gh 'NeogitOrg/neogit' }
+  require('neogit').setup {
+    kind = "floating"
+  }
+  
+  -- Keymaps
+  vim.keymap.set("n", "<leader>g", "<cmd>Neogit<cr>", { desc = "Open Neo[g]it UI" })
 
   -- Useful plugin to show you pending keybinds.
   vim.pack.add { gh 'folke/which-key.nvim' }
@@ -689,7 +704,7 @@ do
   ---@type table<string, vim.lsp.Config>
   local servers = {
     -- clangd = {},
-    -- gopls = {},
+    gopls = {},
     -- pyright = {},
     -- rust_analyzer = {},
     --
@@ -966,7 +981,7 @@ do
   -- require 'kickstart.plugins.indent_line'
   -- require 'kickstart.plugins.lint'
   -- require 'kickstart.plugins.autopairs'
-  -- require 'kickstart.plugins.neo-tree'
+  require 'kickstart.plugins.neo-tree'
   require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
 
   -- NOTE: You can add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
@@ -977,3 +992,12 @@ end
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+
+-- Default whitespace management
+vim.opt.expandtab = false
+vim.opt.tabstop = 4
+vim.opt.softtabstop = 4
+vim.opt.shiftwidth = 4
+
+-- Better espace key!
+vim.keymap.set('i', 'jj', '<Esc>')
