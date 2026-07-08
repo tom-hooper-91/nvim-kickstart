@@ -226,13 +226,14 @@ do
   vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 
   -- Keybinds to make split navigation easier.
-  --  Use CTRL+<hjkl> to switch between windows
-  --
-  --  See `:help wincmd` for a list of all window commands
-  vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-  vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-  vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
-  vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+  --  Use CTRL+<hjkl> to switch between windows.
+  --  These hand off to tmux at the edge of the nvim split layout via
+  --  vim-tmux-navigator (added in the plugins section below), so the same
+  --  keys move seamlessly between nvim splits and tmux panes.
+  vim.keymap.set('n', '<C-h>', '<cmd>TmuxNavigateLeft<cr>', { desc = 'Move focus left (nvim split / tmux pane)' })
+  vim.keymap.set('n', '<C-l>', '<cmd>TmuxNavigateRight<cr>', { desc = 'Move focus right (nvim split / tmux pane)' })
+  vim.keymap.set('n', '<C-j>', '<cmd>TmuxNavigateDown<cr>', { desc = 'Move focus down (nvim split / tmux pane)' })
+  vim.keymap.set('n', '<C-k>', '<cmd>TmuxNavigateUp<cr>', { desc = 'Move focus up (nvim split / tmux pane)' })
 
   -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
   -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
@@ -346,6 +347,13 @@ do
   vim.pack.add { gh 'NMAC427/guess-indent.nvim' }
   require('guess-indent').setup {}
 
+  -- Seamless navigation between nvim splits and tmux panes with <C-hjkl>.
+  -- We disable the plugin's own mappings and define them ourselves (see the
+  -- keymaps section above) so there is a single source of truth. The matching
+  -- tmux side lives in ~/.tmux.conf.
+  vim.g.tmux_navigator_no_mappings = 1
+  vim.pack.add { gh 'christoomey/vim-tmux-navigator' }
+
   -- Here is a more advanced configuration example that passes options to `gitsigns.nvim`
   --
   -- See `:help gitsigns` to understand what each configuration key does.
@@ -362,19 +370,35 @@ do
   }
 
   -- NOTE I've added this one myself - hopefully this will help with common git tasks
-  
+
   -- Dependencies
   vim.pack.add { gh 'esmuellert/codediff.nvim' }
   vim.pack.add { gh 'm00qek/baleia.nvim' }
-  
+
   -- Main package
   vim.pack.add { gh 'NeogitOrg/neogit' }
   require('neogit').setup {
-    kind = "floating"
+    kind = 'floating',
   }
-  
+
+  -- Enable word wrap in Neogit buffers (status, commit message, popups, etc.).
+  -- Neogit force-sets `wrap = false` on its window right after setting the
+  -- filetype, so we defer with vim.schedule to override it once its setup is
+  -- done, targeting the actual window(s) displaying the buffer.
+  vim.api.nvim_create_autocmd('FileType', {
+    pattern = 'Neogit*',
+    callback = function(args)
+      vim.schedule(function()
+        for _, win in ipairs(vim.fn.win_findbuf(args.buf)) do
+          vim.wo[win].wrap = true
+          vim.wo[win].linebreak = true -- break at word boundaries, not mid-word
+        end
+      end)
+    end,
+  })
+
   -- Keymaps
-  vim.keymap.set("n", "<leader>g", "<cmd>Neogit<cr>", { desc = "Open Neo[g]it UI" })
+  vim.keymap.set('n', '<leader>g', '<cmd>Neogit<cr>', { desc = 'Open Neo[g]it UI' })
 
   -- Useful plugin to show you pending keybinds.
   vim.pack.add { gh 'folke/which-key.nvim' }
@@ -397,8 +421,7 @@ do
   -- change the command under that to load whatever the name of that colorscheme is.
   --
   -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-  vim.pack.add { gh 'ellisonleao/gruvbox.nvim',
-  }
+  vim.pack.add { gh 'ellisonleao/gruvbox.nvim' }
   require('gruvbox').setup()
 
   -- Load the colorscheme here.
@@ -985,9 +1008,39 @@ do
   require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
 
   -- NOTE: You can add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
-  --
-  --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- require 'custom.plugins'
+  require 'custom.plugins' -- loads every lua/custom/plugins/*.lua (snacks lives there)
+end
+
+-- ============================================================
+-- SECTION 11: OCTO (GitHub)
+-- octo.nvim for PRs / issues / reviews
+-- (snacks.nvim moved to lua/custom/plugins/snacks.lua)
+-- ============================================================
+do
+  -- [[ octo.nvim ]]
+  -- GitHub PRs, issues and code review from inside Neovim.
+  -- Requires the `gh` CLI (installed + `gh auth login` done) — this is
+  -- the GitHub API layer that sits alongside Neogit (local git) and
+  -- gitsigns (hunks), it does not replace either.
+  --  See https://github.com/pwntester/octo.nvim
+  vim.pack.add {
+    gh 'nvim-lua/plenary.nvim', -- already installed for telescope; harmless to re-declare
+    gh 'pwntester/octo.nvim',
+  }
+  require('octo').setup {
+    picker = 'telescope', -- reuse the picker already configured in Section 5
+  }
+
+  -- Octo keymaps live under <leader>o so they don't collide with the
+  -- <leader>g (Neogit) or <leader>h (gitsigns) groups.
+  vim.keymap.set('n', '<leader>oo', '<cmd>Octo<cr>', { desc = 'Octo: [O]pen menu' })
+  vim.keymap.set('n', '<leader>op', '<cmd>Octo pr list<cr>', { desc = 'Octo: [P]R list' })
+  vim.keymap.set('n', '<leader>oc', '<cmd>Octo pr create<cr>', { desc = 'Octo: PR [C]reate' })
+  vim.keymap.set('n', '<leader>or', '<cmd>Octo review start<cr>', { desc = 'Octo: [R]eview start' })
+  vim.keymap.set('n', '<leader>oi', '<cmd>Octo issue list<cr>', { desc = 'Octo: [I]ssue list' })
+
+  -- Register the <leader>o group label with which-key.
+  require('which-key').add { { '<leader>o', group = '[O]cto (GitHub)' } }
 end
 
 -- The line beneath this is called `modeline`. See `:help modeline`
@@ -1001,3 +1054,7 @@ vim.opt.shiftwidth = 4
 
 -- Better espace key!
 vim.keymap.set('i', 'jj', '<Esc>')
+vim.keymap.set('t', 'jj', '<Esc>')
+
+-- Easy terminal emulator keymap
+vim.keymap.set('n', '<leader>e', '<cmd>split | terminal<cr>', { desc = 'Open Terminal [E]mulator' })
