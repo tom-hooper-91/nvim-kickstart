@@ -398,7 +398,10 @@ do
   })
 
   -- Keymaps
-  vim.keymap.set('n', '<leader>g', '<cmd>Neogit<cr>', { desc = 'Open Neo[g]it UI' })
+  -- All local-git actions live under <leader>g: gg for the Neogit UI, the rest
+  -- are gitsigns hunk maps (see kickstart/plugins/gitsigns.lua). GitHub is
+  -- separate under <leader>o (Octo).
+  vim.keymap.set('n', '<leader>gg', '<cmd>Neogit<cr>', { desc = 'Neo[g]it UI' })
 
   -- Useful plugin to show you pending keybinds.
   vim.pack.add { gh 'folke/which-key.nvim' }
@@ -410,7 +413,7 @@ do
     spec = {
       { '<leader>s', group = '[S]earch', mode = { 'n', 'v' } },
       { '<leader>t', group = '[T]oggle' },
-      { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } }, -- Enable gitsigns recommended keymaps first
+      { '<leader>g', group = '[G]it', mode = { 'n', 'v' } }, -- Neogit + gitsigns hunk maps
       { 'gr', group = 'LSP Actions', mode = { 'n' } },
     },
   }
@@ -1032,7 +1035,7 @@ do
   }
 
   -- Octo keymaps live under <leader>o so they don't collide with the
-  -- <leader>g (Neogit) or <leader>h (gitsigns) groups.
+  -- <leader>g group (Neogit + gitsigns hunks).
   vim.keymap.set('n', '<leader>oo', '<cmd>Octo<cr>', { desc = 'Octo: [O]pen menu' })
   vim.keymap.set('n', '<leader>op', '<cmd>Octo pr list<cr>', { desc = 'Octo: [P]R list' })
   vim.keymap.set('n', '<leader>oc', '<cmd>Octo pr create<cr>', { desc = 'Octo: PR [C]reate' })
