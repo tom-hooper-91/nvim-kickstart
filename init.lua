@@ -536,7 +536,12 @@ do
     --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
     --   },
     -- },
-    -- pickers = {}
+    pickers = {
+      find_files = {
+        -- --hidden alone would list .git internals: rg's ignore rules don't cover .git itself
+        find_command = { 'rg', '--files', '--hidden', '--glob', '!**/.git/*' },
+      },
+    },
     extensions = {
       ['ui-select'] = { require('telescope.themes').get_dropdown() },
     },
@@ -730,7 +735,33 @@ do
   ---@type table<string, vim.lsp.Config>
   local servers = {
     -- clangd = {},
-    gopls = {},
+    gopls = {
+      settings = {
+        gopls = {
+          staticcheck = true, -- staticcheck.dev diagnostics without running the binary separately
+          usePlaceholders = true, -- completion stubs out call arguments
+          -- Populates the <leader>th inlay-hint toggle; all off unless listed here
+          hints = {
+            parameterNames = true,
+            assignVariableTypes = true,
+            compositeLiteralFields = true,
+            constantValues = true,
+            rangeVariableTypes = true,
+          },
+          -- gofumpt = true, -- stricter gofmt; uncomment if your repos use it
+        },
+      },
+    },
+    terraformls = {
+      -- terraform-ls reads settings from initializationOptions, not workspace/configuration
+      init_options = {
+        experimentalFeatures = {
+          prefillRequiredFields = true, -- completing a block stubs out its required attributes
+          validateOnSave = true,
+        },
+      },
+    },
+    tflint = {}, -- lint rules terraform-ls doesn't cover (deprecations, unused declarations, provider-specific checks)
     -- pyright = {},
     -- rust_analyzer = {},
     --
@@ -821,6 +852,8 @@ do
       local enabled_filetypes = {
         -- lua = true,
         -- python = true,
+        terraform = true, -- terraform-ls provides `terraform fmt` via the lsp_format fallback
+        ['terraform-vars'] = true,
       }
       if enabled_filetypes[vim.bo[bufnr].filetype] then
         return { timeout_ms = 500 }
@@ -941,7 +974,7 @@ do
   vim.pack.add { { src = gh 'nvim-treesitter/nvim-treesitter', version = 'main' } }
 
   -- Ensure basic parsers are installed
-  local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' }
+  local parsers = { 'bash', 'c', 'diff', 'hcl', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'terraform', 'vim', 'vimdoc' }
   require('nvim-treesitter').install(parsers)
 
   ---@param buf integer
