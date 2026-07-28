@@ -113,16 +113,30 @@ vim.api.nvim_create_autocmd('ColorScheme', { callback = dashboard_hl })
 -- :terminal keeps the message.
 vim.api.nvim_create_autocmd('TermClose', {
   callback = function(ev)
-    if vim.bo[ev.buf].filetype ~= 'snacks_dashboard' then
-      return
-    end
-    -- schedule: the default nvim.terminal TermClose handler that adds the
-    -- extmark may not have run yet
-    vim.schedule(function()
+    local function clear()
       if vim.api.nvim_buf_is_valid(ev.buf) then
         vim.api.nvim_buf_clear_namespace(ev.buf, vim.api.nvim_create_namespace 'nvim.terminal.exitmsg', 0, -1)
       end
-    end)
+    end
+    if vim.bo[ev.buf].filetype == 'snacks_dashboard' then
+      -- schedule: the default nvim.terminal TermClose handler that adds the
+      -- extmark may not have run yet
+      vim.schedule(clear)
+      return
+    end
+    -- With a stale-but-present cache, snacks displays the cached buffer and
+    -- runs the command in a second, hidden buffer that it only marks
+    -- snacks_dashboard once the job exits — after this TermClose. Waiting for
+    -- that filetype is what catches those sections; bailing here misses them.
+    vim.api.nvim_create_autocmd('FileType', {
+      buffer = ev.buf,
+      once = true,
+      callback = function()
+        if vim.bo[ev.buf].filetype == 'snacks_dashboard' then
+          vim.schedule(clear)
+        end
+      end,
+    })
   end,
 })
 
