@@ -414,9 +414,13 @@ do
       { '<leader>s', group = '[S]earch', mode = { 'n', 'v' } },
       { '<leader>t', group = '[T]oggle' },
       { '<leader>g', group = '[G]it', mode = { 'n', 'v' } }, -- Neogit + gitsigns hunk maps
+      { '<leader>d', group = '[D]ispatch', mode = { 'n'} }, -- Tpope dispatch group (feedback loop)
       { 'gr', group = 'LSP Actions', mode = { 'n' } },
     },
   }
+  vim.keymap.set('n', '<leader>w', function()
+    require('which-key').show()
+  end, { desc = 'Show [W]hich-key' })
 
   -- [[ Colorscheme ]]
   -- You can easily change to a different colorscheme.
@@ -484,6 +488,13 @@ do
 
   -- ... and there is more!
   --  Check out: https://github.com/nvim-mini/mini.nvim
+
+  -- Some useful tpope plugins from Matthew
+  vim.pack.add { gh 'tpope/vim-dispatch' }
+  vim.keymap.set('n', '<leader>dr', '<cmd>Dispatch go run .<cr>', { desc = '[R]un' })
+  vim.keymap.set('n', '<leader>dt', '<cmd>Dispatch go test .<cr>', { desc = '[T]est' })
+
+  vim.pack.add { gh 'tpope/vim-rsi' }
 end
 
 -- ============================================================
