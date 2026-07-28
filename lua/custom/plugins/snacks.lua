@@ -47,7 +47,7 @@ require('snacks').setup {
         cmd = 'git status --short --branch --renames',
         height = 6,
         padding = 1,
-        ttl = 5 * 60,
+        ttl = 0, -- local and instant; caching would just show a stale working tree
         indent = 3,
       },
       {
