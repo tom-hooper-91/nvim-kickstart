@@ -773,6 +773,10 @@ do
       },
     },
     tflint = {}, -- lint rules terraform-ls doesn't cover (deprecations, unused declarations, provider-specific checks)
+    postgres_lsp = {
+      -- Upstream roots only on postgres-language-server.jsonc, and workspace_required means no marker, no attach
+      root_markers = { { 'postgres-language-server.jsonc' }, '.git' },
+    },
     -- pyright = {},
     -- rust_analyzer = {},
     --
@@ -985,7 +989,7 @@ do
   vim.pack.add { { src = gh 'nvim-treesitter/nvim-treesitter', version = 'main' } }
 
   -- Ensure basic parsers are installed
-  local parsers = { 'bash', 'c', 'diff', 'hcl', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'terraform', 'vim', 'vimdoc' }
+  local parsers = { 'bash', 'c', 'diff', 'hcl', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'sql', 'terraform', 'vim', 'vimdoc' }
   require('nvim-treesitter').install(parsers)
 
   ---@param buf integer
@@ -1101,7 +1105,7 @@ vim.opt.shiftwidth = 4
 
 -- Better espace key!
 vim.keymap.set('i', 'jj', '<Esc>')
-vim.keymap.set('t', 'jj', '<Esc>')
+vim.keymap.set('t', 'jj', [[<C-\><C-n>]])
 
 -- Easy terminal emulator keymap
 vim.keymap.set('n', '<leader>e', '<cmd>split | terminal<cr>', { desc = 'Open Terminal [E]mulator' })
