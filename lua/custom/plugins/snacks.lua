@@ -80,7 +80,13 @@ require('snacks').setup {
   notifier = { enabled = true }, -- pretty notification toasts (fidget only does LSP progress, so no overlap)
   dim = { enabled = true }, -- dim code outside the current scope
   zen = { enabled = true }, -- distraction-free centered mode
-  scratch = { enabled = true }, -- persistent, per-project scratch buffers
+  -- Persistent, per-project scratch buffers. A bottom split rather than the
+  -- default float: the toggle closes the scratch's window outright (no buffer
+  -- restore), which only behaves for a split.
+  scratch = {
+    enabled = true,
+    win = { position = 'bottom', height = 0.35 },
+  },
 }
 
 -- Dashboard palette: catppuccin mocha, to complement the tmux status line
