@@ -377,8 +377,11 @@ do
 
   -- Main package
   vim.pack.add { gh 'NeogitOrg/neogit' }
+  -- `replace` (current window), not `floating`: views like commit_view open with
+  -- `kind = "vsplit"`, and a split created while a float is focused lands in the
+  -- outer layout with the float still stacked on top of it.
   require('neogit').setup {
-    kind = 'floating',
+    kind = 'replace',
   }
 
   -- Enable word wrap in Neogit buffers (status, commit message, popups, etc.).
