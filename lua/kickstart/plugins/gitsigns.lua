@@ -5,6 +5,29 @@
 vim.pack.add { 'https://github.com/lewis6991/gitsigns.nvim' }
 
 require('gitsigns').setup {
+  -- This setup call runs after the one in init.lua, so sign rendering is owned
+  -- here to keep it next to the hunk maps rather than split across two files.
+  --
+  -- One glyph for every state: gruvbox already dims the staged highlights
+  -- (GitSignsStagedAdd #597b60 vs GitSignsAdd #b8bb26), so colour carries
+  -- approved-vs-not and shape doesn't need to. Deletions keep their own marks
+  -- because there's no remaining line for colour to land on.
+  signs = {
+    add = { text = '▎' },
+    change = { text = '▎' },
+    changedelete = { text = '▎' },
+    untracked = { text = '▎' },
+    delete = { text = '▁' },
+    topdelete = { text = '▔' },
+  },
+  signs_staged = {
+    add = { text = '▎' },
+    change = { text = '▎' },
+    changedelete = { text = '▎' },
+    untracked = { text = '▎' },
+    delete = { text = '▁' },
+    topdelete = { text = '▔' },
+  },
   on_attach = function(bufnr)
     local gitsigns = require 'gitsigns'
 

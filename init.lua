@@ -126,6 +126,7 @@ do
 
   -- Enable break indent
   vim.o.breakindent = true
+  vim.o.linebreak = true -- wrap at word boundaries, not mid-word
 
   -- Enable undo/redo changes even after closing and reopening a file
   vim.o.undofile = true
@@ -359,15 +360,9 @@ do
   -- See `:help gitsigns` to understand what each configuration key does.
   -- Adds git related signs to the gutter, as well as utilities for managing changes
   vim.pack.add { gh 'lewis6991/gitsigns.nvim' }
-  require('gitsigns').setup {
-    signs = {
-      add = { text = '+' }, ---@diagnostic disable-line: missing-fields
-      change = { text = '~' }, ---@diagnostic disable-line: missing-fields
-      delete = { text = '_' }, ---@diagnostic disable-line: missing-fields
-      topdelete = { text = '‾' }, ---@diagnostic disable-line: missing-fields
-      changedelete = { text = '~' }, ---@diagnostic disable-line: missing-fields
-    },
-  }
+  -- Signs live with the hunk maps in kickstart/plugins/gitsigns.lua, whose setup
+  -- call runs later and wins. Configuring them here too would just be a decoy.
+  require('gitsigns').setup()
 
   -- NOTE I've added this one myself - hopefully this will help with common git tasks
 
@@ -405,6 +400,13 @@ do
   -- are gitsigns hunk maps (see kickstart/plugins/gitsigns.lua). GitHub is
   -- separate under <leader>o (Octo).
   vim.keymap.set('n', '<leader>gg', '<cmd>Neogit<cr>', { desc = 'Neo[g]it UI' })
+
+  -- codediff (already vendored above as a Neogit dependency) is the review
+  -- surface: VSCode-engine side-by-side, `t` toggles to unified. Bare :CodeDiff
+  -- opens the changed-file explorer and re-running it closes the tab, so both
+  -- maps toggle.
+  vim.keymap.set('n', '<leader>gv', '<cmd>CodeDiff<cr>', { desc = 'git [v]iew changes (CodeDiff explorer)' })
+  vim.keymap.set('n', '<leader>gV', '<cmd>CodeDiff file HEAD<cr>', { desc = 'git [V]iew this file vs HEAD' })
 
   -- Useful plugin to show you pending keybinds.
   vim.pack.add { gh 'folke/which-key.nvim' }
