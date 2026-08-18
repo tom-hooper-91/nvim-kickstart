@@ -146,6 +146,26 @@ vim.api.nvim_create_autocmd('TermClose', {
   end,
 })
 
+vim.api.nvim_create_autocmd({ 'WinEnter', 'BufWinEnter' }, {
+  desc = 'Close the dashboard once a real window is entered',
+  group = vim.api.nvim_create_augroup('dashboard-close-on-split', { clear = true }),
+  callback = function()
+    local win = vim.api.nvim_get_current_win()
+    if vim.api.nvim_win_get_config(win).relative ~= '' then return end
+    if vim.bo[vim.api.nvim_win_get_buf(win)].filetype == 'snacks_dashboard' then return end
+
+    for _, other in ipairs(vim.api.nvim_list_wins()) do
+      local buf = vim.api.nvim_win_get_buf(other)
+      if vim.bo[buf].filetype == 'snacks_dashboard' then
+        vim.schedule(function()
+          if vim.api.nvim_buf_is_valid(buf) then vim.api.nvim_buf_delete(buf, { force = true }) end
+        end)
+        return
+      end
+    end
+  end,
+})
+
 -- Zen lives in the <leader>t toggle group. `dim` is automatic (dims as you
 -- move); to turn it off in a session run `:lua Snacks.dim.disable()`.
 vim.keymap.set('n', '<leader>tz', function() require('snacks').zen() end, { desc = '[T]oggle [Z]en mode' })

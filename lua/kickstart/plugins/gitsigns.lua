@@ -8,6 +8,10 @@ require('gitsigns').setup {
   -- This setup call runs after the one in init.lua, so sign rendering is owned
   -- here to keep it next to the hunk maps rather than split across two files.
   --
+  -- Off by default: codediff's explorer splits Staged Changes from Changes, which
+  -- answers "what have I approved" better than sign colour can. The tables below
+  -- still apply when signs are toggled back on with <leader>ts.
+  signcolumn = false,
   -- One glyph for every state: gruvbox already dims the staged highlights
   -- (GitSignsStagedAdd #597b60 vs GitSignsAdd #b8bb26), so colour carries
   -- approved-vs-not and shape doesn't need to. Deletions keep their own marks
@@ -73,6 +77,7 @@ require('gitsigns').setup {
     map('n', '<leader>gQ', function() gitsigns.setqflist 'all' end, { desc = 'git hunk [Q]uickfix list (all files in repo)' })
     map('n', '<leader>gq', gitsigns.setqflist, { desc = 'git hunk [q]uickfix list (all changes in this file)' })
     -- Toggles
+    map('n', '<leader>ts', gitsigns.toggle_signs, { desc = '[T]oggle git [s]igns in the gutter' })
     map('n', '<leader>tb', gitsigns.toggle_current_line_blame, { desc = '[T]oggle git show [b]lame line' })
     map('n', '<leader>tw', gitsigns.toggle_word_diff, { desc = '[T]oggle git intra-line [w]ord diff' })
 

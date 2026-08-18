@@ -128,6 +128,39 @@ do
   vim.o.breakindent = true
   vim.o.linebreak = true -- wrap at word boundaries, not mid-word
 
+  -- Side-by-side diffs bind vertical scrolling only by default, so a long line
+  -- scrolled into view in one pane leaves its counterpart behind. Applies to
+  -- native diff mode as well as codediff, which hard-codes wrap off.
+  vim.opt.scrollopt:append 'hor'
+
+  -- codediff's explorer calls bufload() on every changed file, and E325's
+  -- ATTENTION *message* escapes that call as an error, killing the render
+  -- mid-way. 'A' silences the message; v:swapchoice below only suppresses the
+  -- prompt, so it cannot fix this on its own.
+  vim.opt.shortmess:append 'A'
+
+  -- With the message gone the choice has to be made deliberately: stay read-only
+  -- while a live nvim on this host still owns the swap, edit through once it's
+  -- gone. An unreadable header fails safe to read-only.
+  vim.api.nvim_create_autocmd('SwapExists', {
+    desc = 'Choose a swap action instead of prompting',
+    callback = function()
+      local info = vim.fn.swapinfo(vim.v.swapname)
+      local owner_alive
+      if type(info) ~= 'table' then
+        owner_alive = true
+      elseif info.host and info.host ~= '' and info.host ~= vim.uv.os_gethostname() then
+        owner_alive = true -- another machine's pid isn't ours to test
+      elseif type(info.pid) ~= 'number' or info.pid <= 0 then
+        owner_alive = false
+      else
+        local ok, res = pcall(vim.uv.kill, info.pid, 0)
+        owner_alive = ok and res == 0
+      end
+      vim.v.swapchoice = owner_alive and 'o' or 'e'
+    end,
+  })
+
   -- Enable undo/redo changes even after closing and reopening a file
   vim.o.undofile = true
 
@@ -172,6 +205,24 @@ do
   -- instead raise a dialog asking if you wish to save the current file(s)
   -- See `:help 'confirm'`
   vim.o.confirm = true
+
+  -- Default whitespace management
+  vim.o.expandtab = false
+  vim.o.tabstop = 4
+  vim.o.softtabstop = 4
+  vim.o.shiftwidth = 4
+
+  vim.api.nvim_create_autocmd('FileType', {
+    desc = 'Indent Lua with two spaces, matching .stylua.toml',
+    group = vim.api.nvim_create_augroup('lua-indent', { clear = true }),
+    pattern = 'lua',
+    callback = function(args)
+      vim.bo[args.buf].expandtab = true
+      vim.bo[args.buf].tabstop = 2
+      vim.bo[args.buf].softtabstop = 2
+      vim.bo[args.buf].shiftwidth = 2
+    end,
+  })
 end
 
 -- ============================================================
@@ -253,6 +304,13 @@ do
     group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
     callback = function() vim.hl.on_yank() end,
   })
+
+  -- Better espace key!
+  vim.keymap.set('i', 'jj', '<Esc>')
+  vim.keymap.set('t', 'jj', [[<C-\><C-n>]])
+
+  -- Easy terminal emulator keymap
+  vim.keymap.set('n', '<leader>e', '<cmd>split | terminal<cr>', { desc = 'Open Terminal [E]mulator' })
 end
 
 -- ============================================================
@@ -360,15 +418,30 @@ do
   -- See `:help gitsigns` to understand what each configuration key does.
   -- Adds git related signs to the gutter, as well as utilities for managing changes
   vim.pack.add { gh 'lewis6991/gitsigns.nvim' }
-  -- Signs live with the hunk maps in kickstart/plugins/gitsigns.lua, whose setup
-  -- call runs later and wins. Configuring them here too would just be a decoy.
-  require('gitsigns').setup()
 
   -- NOTE I've added this one myself - hopefully this will help with common git tasks
 
   -- Dependencies
   vim.pack.add { gh 'esmuellert/codediff.nvim' }
   vim.pack.add { gh 'm00qek/baleia.nvim' }
+
+  -- Also driven directly via <leader>gv as the staging surface, not just a Neogit
+  -- dependency. `focus_on_select` defaults to false, which leaves <CR> parked in
+  -- the explorer with no way to reach the hunks it just opened.
+  require('codediff').setup {
+    explorer = { focus_on_select = true },
+    -- gruvbox's DiffAdd (#62693e) leaves Comment (#928374) at 1.58:1 contrast, so
+    -- comment lines inside an added block are unreadable. These backgrounds put the
+    -- line tier at 4.00:1 and 4.37:1 — parity with Comment on the normal background,
+    -- i.e. highlighting a line costs nothing in legibility. The char tier stays
+    -- brighter to keep the two tiers apart; it only ever paints changed characters.
+    highlights = {
+      line_insert = '#232b1a',
+      line_delete = '#2e1d1d',
+      char_insert = '#405226',
+      char_delete = '#5a2727',
+    },
+  }
 
   -- Main package
   vim.pack.add { gh 'NeogitOrg/neogit' }
@@ -407,6 +480,17 @@ do
   -- maps toggle.
   vim.keymap.set('n', '<leader>gv', '<cmd>CodeDiff<cr>', { desc = 'git [v]iew changes (CodeDiff explorer)' })
   vim.keymap.set('n', '<leader>gV', '<cmd>CodeDiff file HEAD<cr>', { desc = 'git [V]iew this file vs HEAD' })
+
+  -- codediff forces wrap off on its panes (ui/lifecycle/state.lua) to keep the two
+  -- sides aligned, and exposes no option for it, so long lines run off-screen.
+  -- Flipping wrap trades that alignment away deliberately; codediff re-asserts its
+  -- own setting on refresh.
+  vim.keymap.set('n', '<leader>tW', function()
+    local target = not vim.wo[vim.api.nvim_get_current_win()].wrap
+    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+      vim.wo[win].wrap = target
+    end
+  end, { desc = '[T]oggle [W]rap in every window in this tab' })
 
   -- Useful plugin to show you pending keybinds.
   vim.pack.add { gh 'folke/which-key.nvim' }
@@ -672,6 +756,8 @@ do
   --
   -- If you're wondering about lsp vs treesitter, you can check out the wonderfully
   -- and elegantly composed help section, `:help lsp-vs-treesitter`
+
+  vim.lsp.log.set_level 'OFF'
 
   -- Useful status updates for LSP.
   vim.pack.add { gh 'j-hui/fidget.nvim' }
@@ -1101,16 +1187,3 @@ end
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
-
--- Default whitespace management
-vim.opt.expandtab = false
-vim.opt.tabstop = 4
-vim.opt.softtabstop = 4
-vim.opt.shiftwidth = 4
-
--- Better espace key!
-vim.keymap.set('i', 'jj', '<Esc>')
-vim.keymap.set('t', 'jj', [[<C-\><C-n>]])
-
--- Easy terminal emulator keymap
-vim.keymap.set('n', '<leader>e', '<cmd>split | terminal<cr>', { desc = 'Open Terminal [E]mulator' })
