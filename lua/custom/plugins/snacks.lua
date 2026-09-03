@@ -91,8 +91,7 @@ require('snacks').setup {
 
 -- Dashboard palette: catppuccin mocha, to complement the tmux status line
 -- (same hex values as the @thm_* vars in catppuccin/tmux). Mauve is the tmux
--- accent; icons/keys pick up the module colors the status bar uses. The rest
--- of the editor stays gruvbox.
+-- accent; icons/keys pick up the module colors the status bar uses.
 local mocha = {
   mauve = '#cba6f7',
   blue = '#89b4fa',

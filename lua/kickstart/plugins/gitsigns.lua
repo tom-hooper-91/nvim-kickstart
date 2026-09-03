@@ -12,9 +12,9 @@ require('gitsigns').setup {
   -- answers "what have I approved" better than sign colour can. The tables below
   -- still apply when signs are toggled back on with <leader>ts.
   signcolumn = false,
-  -- One glyph for every state: gruvbox already dims the staged highlights
-  -- (GitSignsStagedAdd #597b60 vs GitSignsAdd #b8bb26), so colour carries
-  -- approved-vs-not and shape doesn't need to. Deletions keep their own marks
+  -- One glyph for every state: catppuccin already dims the staged highlights
+  -- (GitSignsStagedAdd vs GitSignsAdd), so colour carries approved-vs-not and
+  -- shape doesn't need to. Deletions keep their own marks
   -- because there's no remaining line for colour to land on.
   signs = {
     add = { text = '▎' },

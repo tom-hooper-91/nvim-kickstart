@@ -430,17 +430,6 @@ do
   -- the explorer with no way to reach the hunks it just opened.
   require('codediff').setup {
     explorer = { focus_on_select = true },
-    -- gruvbox's DiffAdd (#62693e) leaves Comment (#928374) at 1.58:1 contrast, so
-    -- comment lines inside an added block are unreadable. These backgrounds put the
-    -- line tier at 4.00:1 and 4.37:1 — parity with Comment on the normal background,
-    -- i.e. highlighting a line costs nothing in legibility. The char tier stays
-    -- brighter to keep the two tiers apart; it only ever paints changed characters.
-    highlights = {
-      line_insert = '#232b1a',
-      line_delete = '#2e1d1d',
-      char_insert = '#405226',
-      char_delete = '#5a2727',
-    },
   }
 
   -- Main package
@@ -512,18 +501,9 @@ do
   end, { desc = 'Show [W]hich-key' })
 
   -- [[ Colorscheme ]]
-  -- You can easily change to a different colorscheme.
-  -- Change the name of the colorscheme plugin below, and then
-  -- change the command under that to load whatever the name of that colorscheme is.
-  --
-  -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`.
-  vim.pack.add { gh 'ellisonleao/gruvbox.nvim' }
-  require('gruvbox').setup()
-
-  -- Load the colorscheme here.
-  -- Like many other themes, this one has different styles, and you could load
-  -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-  vim.cmd.colorscheme 'gruvbox'
+  vim.pack.add { gh 'catppuccin/nvim' }
+  require('catppuccin').setup { flavour = 'mocha' }
+  vim.cmd.colorscheme 'catppuccin'
 
   -- Highlight todo, notes, etc in comments
   vim.pack.add { gh 'folke/todo-comments.nvim' }
