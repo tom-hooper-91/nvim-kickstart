@@ -68,12 +68,12 @@ require('snacks').setup {
       },
       {
         -- pane 1, listed last: sits centered below the header/keys/footer
-        -- column. The script picks a random gen-1 pokemon and centers it to
-        -- the dashboard width (see scripts/dashboard-pokemon.sh).
+        -- column. The script picks a random Caves of Qud creature tile and
+        -- centers it to the dashboard width (see scripts/dashboard-qud.sh).
         section = 'terminal',
-        cmd = vim.fn.stdpath 'config' .. '/scripts/dashboard-pokemon.sh 60',
-        random = 10, -- vary the cache key so a different pokemon shows each launch
-        height = 22, -- tallest gen-1 small sprite
+        cmd = vim.fn.stdpath 'config' .. '/scripts/dashboard-qud.sh 60',
+        random = 10, -- vary the cache key so a different creature shows each launch
+        height = 26, -- 24 sprite rows, a blank, and the caption
       },
     },
   },
@@ -114,7 +114,7 @@ vim.api.nvim_create_autocmd('ColorScheme', { callback = dashboard_hl })
 
 -- Nvim 0.11+ shows "[Process exited 0]" as extmark virtual text, which snacks'
 -- built-in scrubber (it deletes buffer lines) can't remove — clear it under the
--- dashboard's pokemon terminal section. Scoped to dashboard buffers so regular
+-- dashboard's Qud tile terminal section. Scoped to dashboard buffers so regular
 -- :terminal keeps the message.
 vim.api.nvim_create_autocmd('TermClose', {
   callback = function(ev)
