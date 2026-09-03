@@ -72,7 +72,7 @@ require('snacks').setup {
         -- centers it to the dashboard width (see scripts/dashboard-qud.sh).
         section = 'terminal',
         cmd = vim.fn.stdpath 'config' .. '/scripts/dashboard-qud.sh 60',
-        random = 10, -- vary the cache key so a different creature shows each launch
+        ttl = 0,
         height = 26, -- 24 sprite rows, a blank, and the caption
       },
     },

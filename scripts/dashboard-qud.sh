@@ -16,9 +16,9 @@ name = path.rsplit('/', 1)[-1].removesuffix('.txt')
 lines = open(path).read().rstrip('\n').splitlines()
 while lines and not lines[-1].strip():
     lines.pop()
-lines += ['', f'\x1b[38;2;147;153;178m{name}\x1b[0m']
 strip = lambda s: re.sub(r'\x1b\[[0-9;]*m', '', s)
-vis = max(len(strip(l)) for l in lines)
-pad = ' ' * max(0, (width - vis) // 2)
-sys.stdout.write('\n'.join(pad + l for l in lines) + '\n')
+center = lambda l, w: ' ' * max(0, (width - w) // 2) + l
+sprite_w = max(len(strip(l)) for l in lines)
+out = [center(l, sprite_w) for l in lines] + ['', center(f'\x1b[38;2;147;153;178m{name}\x1b[0m', len(name))]
+sys.stdout.write('\n'.join(out) + '\n')
 " "$WIDTH" "$tile"
