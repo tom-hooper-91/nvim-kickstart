@@ -10,6 +10,98 @@ A starting point for Neovim that is:
 
 **NOT** a Neovim distribution, but instead a starting point for your configuration.
 
+## Setting up on a new machine
+
+This is a personal fork of kickstart.nvim. The steps below take a blank
+machine to this config running with every plugin, language server and the
+dashboard. They are written for macOS with Homebrew; on Linux install the same
+tools with your package manager (the upstream [Install
+Recipes](#install-recipes) further down list them per distro) and the rest is
+identical.
+
+### 1. Install the tools
+
+Neovim must be **0.12 or newer**. Plugins are managed by the built-in
+`vim.pack`, which does not exist in earlier releases, and `:checkhealth
+kickstart` will fail on anything older.
+
+```sh
+xcode-select --install
+brew install neovim git make ripgrep fd tree-sitter gh go uv
+brew install --cask font-jetbrains-mono-nerd-font
+```
+
+| Tool | Why it is needed |
+| :- | :- |
+| `neovim` >= 0.12 | `vim.pack` plugin manager, `vim.lsp.config` |
+| `git`, `make`, C compiler (Xcode CLT) | cloning plugins, building `telescope-fzf-native` and LuaSnip's `jsregexp`, compiling tree-sitter parsers |
+| `ripgrep`, `fd` | Telescope live grep and file finder |
+| `tree-sitter` | nvim-treesitter (`main` branch) compiles parsers with the CLI |
+| `gh` | octo.nvim and the open-PRs section of the dashboard |
+| `go` | Mason installs `gopls` with `go install` |
+| `uv` | fetching the dashboard's Caves of Qud tiles (optional, see step 5) |
+| a Nerd Font | `vim.g.have_nerd_font` is `true`; any Nerd Font works, set it in your terminal |
+| `tmux` | optional; `vim-tmux-navigator` keymaps only do something inside tmux |
+
+The other language servers and tools (`terraform-ls`, `tflint`,
+`lua-language-server`, `stylua`, `postgres-language-server`) are downloaded by
+Mason as prebuilt binaries and need nothing else installed.
+
+### 2. Clone the config
+
+Move any existing config and plugin data out of the way first, then clone
+into Neovim's config directory:
+
+```sh
+mv ~/.config/nvim ~/.config/nvim.bak 2>/dev/null
+mv ~/.local/share/nvim ~/.local/share/nvim.bak 2>/dev/null
+git clone https://github.com/tom-hooper-91/nvim-kickstart.git "${XDG_CONFIG_HOME:-$HOME/.config}/nvim"
+```
+
+### 3. First launch
+
+```sh
+nvim
+```
+
+The first start does all the installing:
+
+- `vim.pack` asks you to confirm the list of plugins to install, then clones
+  them into `~/.local/share/nvim/site/pack/core/opt/` and runs the
+  `telescope-fzf-native` and LuaSnip builds. Answer yes.
+- Mason installs `gopls`, `terraform-ls`, `tflint`, `lua_ls`, `stylua` and
+  `postgres_lsp` into `~/.local/share/nvim/mason/`. This runs in the
+  background; `:Mason` shows progress.
+- nvim-treesitter compiles the parsers listed in `init.lua`.
+
+Some plugins may complain during that first start because they load before
+their dependencies have finished installing. Quit and reopen once the installs
+have settled and the errors go away.
+
+### 4. Verify
+
+```vim
+:checkhealth kickstart
+:Mason
+:lua vim.pack.update(nil, { offline = true })
+```
+
+The first confirms the Neovim version and that `git`, `make`, `unzip` and `rg`
+are on `PATH`. The second should show all six tools installed. The third lists
+every plugin and its current revision without touching the network (`:quit`
+to close it).
+
+### 5. Optional: dashboard tiles
+
+The dashboard shows a random Caves of Qud sprite. Without the tiles it prints
+a one-line hint instead. Fetch them once with:
+
+```sh
+uv run ~/.config/nvim/scripts/fetch-qud-tiles.py
+```
+
+This writes to `~/.local/share/qud-tiles/` and is not synced with the config.
+
 ## Installation
 
 ### Install Neovim
