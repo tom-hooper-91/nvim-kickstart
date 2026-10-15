@@ -469,6 +469,14 @@ do
   -- maps toggle.
   vim.keymap.set('n', '<leader>gv', '<cmd>CodeDiff<cr>', { desc = 'git [v]iew changes (CodeDiff explorer)' })
   vim.keymap.set('n', '<leader>gV', '<cmd>CodeDiff file HEAD<cr>', { desc = 'git [V]iew this file vs HEAD' })
+  vim.keymap.set('n', '<leader>gp', function()
+    local result = vim.system({ 'git', 'symbolic-ref', '--short', 'refs/remotes/origin/HEAD' }, { text = true }):wait()
+    if result.code ~= 0 then
+      vim.notify('origin/HEAD is unset; run `git remote set-head origin --auto`', vim.log.levels.ERROR)
+      return
+    end
+    vim.cmd('CodeDiff ' .. vim.trim(result.stdout) .. '...HEAD')
+  end, { desc = 'git view this branch as a [P]R (CodeDiff vs merge-base)' })
 
   -- codediff forces wrap off on its panes (ui/lifecycle/state.lua) to keep the two
   -- sides aligned, and exposes no option for it, so long lines run off-screen.
@@ -1151,6 +1159,10 @@ do
   }
   require('octo').setup {
     picker = 'telescope', -- reuse the picker already configured in Section 5
+    use_local_fs = true,
+    pull_requests = {
+      order_by = { field = 'UPDATED_AT', direction = 'DESC' },
+    },
   }
 
   -- Octo keymaps live under <leader>o so they don't collide with the
@@ -1160,6 +1172,19 @@ do
   vim.keymap.set('n', '<leader>oc', '<cmd>Octo pr create<cr>', { desc = 'Octo: PR [C]reate' })
   vim.keymap.set('n', '<leader>or', '<cmd>Octo review start<cr>', { desc = 'Octo: [R]eview start' })
   vim.keymap.set('n', '<leader>oi', '<cmd>Octo issue list<cr>', { desc = 'Octo: [I]ssue list' })
+  vim.keymap.set(
+    'n',
+    '<leader>oR',
+    '<cmd>Octo search is:open is:pr review-requested:@me archived:false<cr>',
+    { desc = 'Octo: PRs awaiting my [R]eview (all repos)' }
+  )
+  vim.keymap.set(
+    'n',
+    '<leader>oa',
+    '<cmd>Octo search is:open is:pr assignee:@me archived:false<cr>',
+    { desc = 'Octo: PRs [A]ssigned to me (all repos)' }
+  )
+  vim.keymap.set('n', '<leader>on', '<cmd>Octo notification list<cr>', { desc = 'Octo: [N]otifications' })
 
   -- Register the <leader>o group label with which-key.
   require('which-key').add { { '<leader>o', group = '[O]cto (GitHub)' } }
