@@ -515,7 +515,10 @@ do
 
   -- Highlight todo, notes, etc in comments
   vim.pack.add { gh 'folke/todo-comments.nvim' }
-  require('todo-comments').setup { signs = false }
+  require('todo-comments').setup {
+    signs = false,
+    keywords = { AGENT = { icon = '󰚩 ', color = 'hint' } }, -- Add agent notes to assist with AI refactoring
+  }
 
   -- [[ mini.nvim ]]
   --  A collection of various small independent plugins/modules
