@@ -1,6 +1,9 @@
 require('which-key').add { { '<leader>a', group = '[A]gent' } }
 
 vim.keymap.set('n', '<leader>al', '<cmd>TodoTelescope keywords=AGENT<cr>', { desc = '[A]gent: [L]ist notes' })
+vim.keymap.set('n', '<leader>ad', function()
+  require('telescope.builtin').find_files { cwd = vim.fn.expand '~/repos/drafts', prompt_title = 'Drafts' }
+end, { desc = '[A]gent: open [D]rafts' })
 
 local agent_note = '<!-- AGENT:  -->'
 local agent_note_cursor_col = #'<!-- AGENT: '
