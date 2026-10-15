@@ -1164,6 +1164,7 @@ do
       order_by = { field = 'UPDATED_AT', direction = 'DESC' },
     },
   }
+  vim.treesitter.language.register('markdown', 'octo')
 
   -- Octo keymaps live under <leader>o so they don't collide with the
   -- <leader>g group (Neogit + gitsigns hunks).
